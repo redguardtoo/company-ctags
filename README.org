@@ -1,0 +1,30 @@
+* Fastest auto-completion using Company and Ctags
+
+This library enables the completion using [[http://company-mode.github.io][Company mode]] and [[https://en.wikipedia.org/wiki/Ctags][Ctags]] for Emacs. It's *simply fast* because a new optimized algorithm is designed for Ctags.
+
+It shows the candidate immediately for project as big as Linux kernel.
+
+[[screenshot.png]]
+
+** Installation
+The best way to install this package is via [[http://melpa.org][MELPA]].
+** Set up
+#+BEGIN_SRC emacs-lisp
+(eval-after-load 'company
+  '(progn
+     (require 'company-ctags)
+     (company-ctags-auto-setup)))
+#+END_SRC
+* Usage
+Step 1, create tags file in project root,
+#+begin_src sh
+find . -name "*.[ch]" | ctags -e -L -
+#+end_src
+
+Step 2, enjoy!
+** Tips
+Make sure =diff-command= is executable on Windows. You might need install GNU Diff.
+
+Linux/macOS needs no setup.
+** Contact me
+Report bugs at [[https://github.com/redguardtoo/company-ctags]].
