@@ -23,7 +23,7 @@ find . -name "*.[ch]" | ctags -e -L -
 
 Step 2, enjoy!
 ** Tips
-Make sure =diff-command= is executable on Windows. You might need install GNU Diff.
+Make sure =diff-command= is executable on Windows. You might need install GNU Diff. It's used to speed up loading of updated tags file.
 
 Linux/macOS needs no setup.
 ** Contact me
