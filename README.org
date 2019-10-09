@@ -6,9 +6,10 @@ It shows the candidate immediately for project as big as Linux kernel.
 
 [[screenshot.png]]
 
-** Installation
-The best way to install this package is via [[http://melpa.org][MELPA]].
-** Set up
+** Install
+Place =company-ctags.el= under [[https://www.emacswiki.org/emacs/LoadPath][Load Path]]. 
+
+Then add below code into =~/.emacs=,
 #+BEGIN_SRC emacs-lisp
 (eval-after-load 'company
   '(progn
