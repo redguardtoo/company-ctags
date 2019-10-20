@@ -26,6 +26,8 @@ Step 2, enjoy!
 ** Tips
 Make sure =diff-command= is executable on Windows. You might need install GNU Diff. It's used to speed up loading of updated tags file.
 
+The program =diff= is optional but highly recommended.
+
 Linux/macOS needs no setup.
 ** Contact me
 Report bugs at [[https://github.com/redguardtoo/company-ctags]].

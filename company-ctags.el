@@ -40,13 +40,13 @@
 ;;        (require 'company-ctags)
 ;;        (company-ctags-auto-setup)))
 ;;
-;;   Step 2, Create tags file using Ctags and enjoy.
+;;   Step 2, Use Ctags to create tags file and enjoy.
 ;;
 ;; You can also turn on `company-ctags-support-etags' to support tags
 ;; file created by etags.  But it will increase initial loading time.
 ;;
-;; Make sure `diff-command' is executable on Windows. You might need install GNU Diff.
-;; It's used to speed up loading of updated tags file.
+;; Make sure `diff-command' is executable on Windows.  You might need install GNU Diff.
+;; It optional but highly recommended. It can speed up tags file updating.
 
 ;;; Code:
 
