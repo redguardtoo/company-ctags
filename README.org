@@ -6,14 +6,15 @@ It shows the candidate immediately for project as big as Linux kernel.
 
 [[screenshot.png]]
 
-** Install
-Place =company-ctags.el= under [[https://www.emacswiki.org/emacs/LoadPath][Load Path]]. 
+* Install and Setup
+Place =company-ctags.el= under [[https://www.emacswiki.org/emacs/LoadPath][Load Path]], then add =(require 'company-ctags)= to your configuration.
 
-Then add below code into =~/.emacs=,
+It’s also possible to use [[http://melpa.org/]].
+
+Setup is simple,
 #+BEGIN_SRC emacs-lisp
 (eval-after-load 'company
   '(progn
-     (require 'company-ctags)
      (company-ctags-auto-setup)))
 #+END_SRC
 * Usage
@@ -23,11 +24,15 @@ find . -name "*.[ch]" | ctags -e -L -
 #+end_src
 
 Step 2, enjoy!
-** Tips
+* Tips
 Make sure =diff-command= is executable on Windows. You might need install GNU Diff. It's used to speed up loading of updated tags file.
 
 The program =diff= is optional but highly recommended.
 
 Linux/macOS needs no setup.
-** Contact me
+* Contact me
 Report bugs at [[https://github.com/redguardtoo/company-ctags]].
+* License
+find-file-in-project is free software: you can redistribute it and/or modify it under the terms of the [[https://raw.githubusercontent.com/technomancy/find-file-in-project/master/LICENSE][GNU General Public License]] as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+find-file-in-project is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [[https://raw.githubusercontent.com/technomancy/find-file-in-project/master/LICENSE][GNU General Public License]] for more details.
