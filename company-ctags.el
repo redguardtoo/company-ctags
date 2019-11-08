@@ -4,7 +4,7 @@
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/redguardtoo/company-ctags
-;; Version: 0.0.1
+;; Version: 0.0.2
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "24.3") (company "0.9.0"))
 
@@ -254,7 +254,8 @@ This function return t if any tag file is reloaded."
       (setq reloaded t)
       (message "Loading %s ..." file)
       (cond
-       (use-diff
+       ;; (use-diff
+       (nil
         ;; actually don't change raw-content attached to file-info
         (setq raw-content (plist-get file-info :raw-content))
 
