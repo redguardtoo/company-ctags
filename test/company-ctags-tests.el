@@ -63,7 +63,7 @@
     (create-tags-file tags-file-name)
     (should (file-exists-p tags-file-name))
     (setq company-ctags-tags-file-caches nil)
-    (should (company-ctags-load-tags-file tags-file-name t t t))
+    (should (company-ctags-load-tags-file tags-file-name nil t t t))
     (should company-ctags-tags-file-caches)
     (delete-file tags-file-name) ; clean up
     (setq file-info (gethash tags-file-name company-ctags-tags-file-caches))
@@ -82,7 +82,7 @@
          cands)
     (create-tags-file tags-file-name)
     (setq company-ctags-tags-file-caches nil)
-    (should (company-ctags-load-tags-file tags-file-name t t t))
+    (should (company-ctags-load-tags-file tags-file-name nil t t t))
     (should company-ctags-tags-file-caches)
     (delete-file tags-file-name) ; clean up
 
@@ -109,7 +109,7 @@
     ;; load initial tags file
     (create-tags-file tags-file-name)
     (setq company-ctags-tags-file-caches nil)
-    (should (company-ctags-load-tags-file tags-file-name t t t))
+    (should (company-ctags-load-tags-file tags-file-name nil t t t))
     (should company-ctags-tags-file-caches)
     (delete-file tags-file-name) ; clean up
 
@@ -137,7 +137,7 @@
       (push "function hello() {\177hello\0011,0\n" tags-file-content)
       (push "function newtag() {\177newtag\0011,0\n" tags-file-content)
       (create-tags-file tags-file-name)
-      (should (company-ctags-load-tags-file tags-file-name t nil t))
+      (should (company-ctags-load-tags-file tags-file-name nil t nil t))
       (delete-file tags-file-name) ; clean up
 
       (setq file-info (gethash tags-file-name company-ctags-tags-file-caches))

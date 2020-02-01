@@ -25,9 +25,19 @@ find . -name "*.[ch]" | ctags -e -L -
 
 Step 2, enjoy!
 * Tips
-Make sure =diff-command= is executable on Windows. You might need install GNU Diff. It's used to speed up loading of updated tags file.
+** Load extra tags files
+You can set =company-ctags-extra-tags-files= to load extra tags files,
 
-The program =diff= is optional but highly recommended.
+#+begin_src elisp
+(setq company-ctags-extra-tags-files '("$HOME/TAGS" "/usr/include/TAGS"))
+#+end_src
+
+** Use CLI program diff to improve performance
+Make sure CLI program =diff= is executable on Windows.
+
+It's optional but highly recommended.  It can speed up tags file updating.
+
+This package uses diff through variable =diff-command=.
 
 Linux/macOS needs no setup.
 * Contact me
