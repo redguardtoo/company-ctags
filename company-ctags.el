@@ -92,6 +92,10 @@ Default value is 30 seconds."
   "The name of tags file."
   :type 'string)
 
+(defcustom company-ctags-non-prefix-completion nil
+  "Non-nil means do non-prefix completion."
+  :type 'boolean)
+
 (defvar company-ctags-modes
   '(prog-mode
     c-mode
@@ -141,22 +145,23 @@ It's like (prefix . candidates).")
 
 (defmacro company-ctags-push-tagname (tagname tagname-dict)
   "Push TAGNAME into TAGNAME-DICT."
-  `(let* ((c (elt ,tagname 0)))
-    (cond
-     ((or (and (>= c ?a) (<= c ?z))
-          (and (>= c ?A) (<= c ?Z))
-          (eq c ?$)
-          (eq c ?#)
-          (eq c ?@)
-          (eq c ?%)
-          (eq c ?_)
-          (eq c ?!)
-          (eq c ?*)
-          (eq c ?&)
-          (and (>= c ?0) (<= c ?9)))
-      (push ,tagname (gethash c ,tagname-dict)))
-     (t
-      (push ,tagname (gethash ?' ,tagname-dict))))))
+  `(let ((tagname-no-dup (cl-remove-duplicates (string-to-list ,tagname))))
+     (dolist (c tagname-no-dup)
+       (cond
+        ((or (and (>= c ?a) (<= c ?z))
+             (and (>= c ?A) (<= c ?Z))
+             (eq c ?$)
+             (eq c ?#)
+             (eq c ?@)
+             (eq c ?%)
+             (eq c ?_)
+             (eq c ?!)
+             (eq c ?*)
+             (eq c ?&)
+             (and (>= c ?0) (<= c ?9)))
+         (push ,tagname (gethash c ,tagname-dict)))
+        (t
+         (push ,tagname (gethash ?' ,tagname-dict)))))))
 
 (defun company-ctags-init-tagname-dict ()
   "Initialize tagname dict."
@@ -225,7 +230,9 @@ If it's nil, return a dictionary, or else return the existing dictionary."
   "Search for partial match to PREFIX in TAGNAME-DICT."
   (let* ((c (elt prefix 0))
          (arr (gethash c tagname-dict (gethash ?' tagname-dict))))
-    (all-completions prefix arr)))
+    (if company-ctags-non-prefix-completion
+        (company-ctags--all-completions-non-prefix prefix arr)
+      (all-completions prefix arr))))
 
 (defun company-ctags-load-tags-file (file &optional force no-diff-prog quiet)
   "Load tags from FILE.
@@ -295,6 +302,26 @@ If QUIET is t, don not output any message."
       (unless quiet (message "%s is loaded." file)))
     reloaded))
 
+(defun company-ctags--all-completions-non-prefix (prefix collection)
+  "Search for all elements in COLLECTION that contain PREFIX as a substring.
+Return a list of all these elements."
+  (let ((rlt))
+    (dolist (e collection)
+      (when (cl-search prefix e)
+        (push e rlt)))
+    (nreverse rlt)))
+
+(defun company-ctags--match-bounds (prefix candidate)
+  "Find all occurence of PREFIX in CANDIDATE and return their bounds.
+PREFIX and CANDIDATE are strings.  The return value is a list
+of (beginning-of-occur . end-of-occur) elements."
+  (let ((start 0)
+        (bounds))
+    (while (setq start (cl-search prefix candidate  :start2 start))
+      (push (cons start (+ (length prefix) start)) bounds)
+      (setq start (+ (length prefix) start)))
+    bounds))
+
 (defun company-ctags--candidates (prefix)
   "Get candidate with PREFIX."
   (when (and prefix (> (length prefix) 0))
@@ -319,7 +346,10 @@ If QUIET is t, don not output any message."
              (>= (length prefix) (length (car company-ctags-cached-candidates)))
              (string= (substring prefix 0 (length (car company-ctags-cached-candidates)))
                       (car company-ctags-cached-candidates)))
-        (setq rlt (all-completions prefix (cdr company-ctags-cached-candidates))))
+        (setq rlt
+              (if company-ctags-non-prefix-completion
+                  (company-ctags--all-completions-non-prefix prefix (cdr company-ctags-cached-candidates))
+                (all-completions prefix (cdr company-ctags-cached-candidates)))))
 
        ;; search candidates through tags files
        (t
@@ -347,6 +377,8 @@ Execute COMMAND with ARG and IGNORED."
                  (company-ctags-buffer-table)
                  (or (company-grab-symbol) 'stop)))
     (candidates (company-ctags--candidates arg))
+    (match (company-ctags--match-bounds (company-grab-symbol) arg))
+    (no-cache company-ctags-non-prefix-completion)
     (location (let ((tags-table-list (company-ctags-buffer-table)))
                 (when (fboundp 'find-tag-noselect)
                   (save-excursion
