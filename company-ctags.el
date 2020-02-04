@@ -333,6 +333,18 @@ If QUIET is t, don not output any message."
       ;; cleanup
       (if rlt (delete-dups rlt)))))
 
+(defun company-ctags--cleanup-cache (&rest _)
+  "Cleanup cached candidates.
+Since the candidates we put in `company-ctags-cached-candidates' is just a
+reference to the actual value that can be modified by company in unexpedted
+ways, we should clean it up so it doesn't intefere with our next completion
+session.
+
+This should be added to `company-after-completion-hook' when a
+completion session starts, and it will remove itself when the session ends."
+  (setq company-ctags-cached-candidates nil)
+  (remove-hook 'company-after-completion-hook #'company-ctags--cleanup-cache))
+
 ;;;###autoload
 (defun company-ctags (command &optional arg &rest ignored)
   "Completion backend of for ctags.
@@ -340,12 +352,14 @@ Execute COMMAND with ARG and IGNORED."
   (interactive (list 'interactive))
   (cl-case command
     (interactive (company-begin-backend 'company-ctags))
-    (prefix (and (apply #'derived-mode-p company-ctags-modes)
+    (prefix (progn
+              (add-hook 'company-after-completion-hook #'company-ctags--cleanup-cache)
+              (and (apply #'derived-mode-p company-ctags-modes)
                  (or (eq t company-ctags-everywhere)
                      (apply #'derived-mode-p company-ctags-everywhere)
                      (not (company-in-string-or-comment)))
                  (company-ctags-buffer-table)
-                 (or (company-grab-symbol) 'stop)))
+                 (or (company-grab-symbol) 'stop))))
     (candidates (company-ctags--candidates arg))
     (location (let ((tags-table-list (company-ctags-buffer-table)))
                 (when (fboundp 'find-tag-noselect)
