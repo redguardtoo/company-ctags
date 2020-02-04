@@ -86,8 +86,11 @@ A typical format is,
 Environment variables can be inserted between slashes (`/').
 They will be replaced by their definitions.  If a variable does
 not exist, it is replaced (silently) with an empty string."
-  :group 'company-ctags
   :type '(repeat 'string))
+
+(defcustom company-ctags-quiet t
+  "Be quiet and do not notify user tags file status."
+  :type 'boolean)
 
 (defcustom company-ctags-support-etags nil
   "Support tags file created by etags.
@@ -107,7 +110,6 @@ Set it to t or to a list of major modes."
   "The interval (seconds) to check tags file.
 Default value is 30 seconds."
   :type 'integer)
-
 
 (defcustom company-ctags-tags-file-name "TAGS"
   "The name of tags file."
@@ -343,7 +345,11 @@ If QUIET is t, don not output any message."
       ;; load tags files, maybe
       (dolist (f all-tags-files)
         (when (and f (file-exists-p f))
-          (when (company-ctags-load-tags-file f nil)
+          (when (company-ctags-load-tags-file f
+                                              nil ; primary tags file, not static
+                                              nil
+                                              nil ; only for debug
+                                              company-ctags-quiet)
             ;; clear cached candidates if any tags file is reloaded
             (setq company-ctags-cached-candidates nil))))
 
@@ -352,7 +358,11 @@ If QUIET is t, don not output any message."
           (when (and f (file-exists-p f))
             ;; tags file in `company-ctags-extra-tags-files' is read only once.
             ;; so don't update cache unless `company-ctags-cached-candidates' is empty
-            (company-ctags-load-tags-file f t (not company-ctags-cached-candidates)))))
+            (company-ctags-load-tags-file f
+                                          t ; static tags file, read only once
+                                          (not company-ctags-cached-candidates)
+                                          nil ; only for debug
+                                          company-ctags-quiet))))
 
       (cond
        ;; re-use cached candidates
