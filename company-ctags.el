@@ -308,6 +308,10 @@ Return a list of all these elements."
   (let ((rlt))
     (dolist (e collection)
       (when (cl-search prefix e)
+        (put-text-property 0 (length e)
+                           'company-ctags-match
+                           (company-ctags--match-bounds prefix e)
+                           e)
         (push e rlt)))
     (nreverse rlt)))
 
@@ -377,7 +381,7 @@ Execute COMMAND with ARG and IGNORED."
                  (company-ctags-buffer-table)
                  (or (company-grab-symbol) 'stop)))
     (candidates (company-ctags--candidates arg))
-    (match (company-ctags--match-bounds (company-grab-symbol) arg))
+    (match (get-text-property 0 'company-ctags-match arg))
     (no-cache company-ctags-non-prefix-completion)
     (location (let ((tags-table-list (company-ctags-buffer-table)))
                 (when (fboundp 'find-tag-noselect)
