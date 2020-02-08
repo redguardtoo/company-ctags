@@ -40,6 +40,32 @@ It's optional but highly recommended.  It can speed up tags file updating.
 This package uses diff through variable =diff-command=.
 
 Linux/macOS needs no setup.
+** Fuzzy match
+Set =company-ctags-fuzzy-match-p= to fuzzy match the candidates.
+
+The input could match any part of the candidate instead of the beginning of the candidate.
+
+Here is example how to combine [[https://github.com/abo-abo/swiper/blob/master/counsel.el][counsel]] with =company-ctags=,
+#+begin_src elisp
+(require 'counsel)
+(defun my-counsel-company ()
+  "Input code from company backend using fuzzy matching."
+  (interactive)
+  (company-abort)
+  (let* ((company-backends '(company-ctags))
+         (company-ctags-fuzzy-match-p t))
+    (counsel-company)))
+#+end_src
+
+You can use [[https://github.com/noctuid/general.el][general.el]] so you could press =rr= in insert mode to trigger =my-counsel-company=,
+#+begin_src elisp
+;; In insert mode, press "rr" in 0.2 second to trigger my-counsel-company
+(require 'general)
+(general-imap "r"
+  (general-key-dispatch 'self-insert-command
+    :timeout 0.2
+    "r" 'my-counsel-company))
+#+end_src
 * Contact me
 Report bugs at [[https://github.com/redguardtoo/company-ctags]].
 * License
