@@ -57,6 +57,7 @@
 
 ;;; Code:
 
+(require 'find-file)
 (require 'company nil t)
 (require 'cl-lib)
 
