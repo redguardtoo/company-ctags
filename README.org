@@ -66,6 +66,13 @@ You can use [[https://github.com/noctuid/general.el][general.el]] so you could p
     :timeout 0.2
     "r" 'my-counsel-company))
 #+end_src
+** Rust programming language
+Use [[https://github.com/dan-t/rusty-tags][rusty-tags]] to generate tags file for Rust programming language.
+
+Add below code into ~/.emacs,
+#+begin_src elisp
+(setq company-ctags-tags-file-name "rusty-tags.emacs")
+#+end_src
 * Contact me
 Report bugs at [[https://github.com/redguardtoo/company-ctags]].
 * License

@@ -54,6 +54,10 @@
 ;;   The input could match any part of the candidate instead of the beginning of
 ;;   the candidate.
 ;;
+;; - Use rusty-tags to generate tags file for Rust programming language.
+;;   Add below code into ~/.emacs,
+;;     (setq company-ctags-tags-file-name "rusty-tags.emacs")
+;;
 ;; - Make sure CLI program diff is executable on Windows.
 ;; It's optional but highly recommended.  It can speed up tags file updating.
 ;; This package uses diff through variable `diff-command'.
