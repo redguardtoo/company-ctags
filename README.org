@@ -13,9 +13,8 @@ It’s also possible to use [[http://melpa.org/]].
 
 Setup is simple,
 #+BEGIN_SRC emacs-lisp
-(eval-after-load 'company
-  '(progn
-     (company-ctags-auto-setup)))
+(with-eval-after-load 'company
+  (company-ctags-auto-setup))
 #+END_SRC
 * Usage
 Step 1, create tags file in project root,
