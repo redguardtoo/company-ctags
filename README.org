@@ -7,9 +7,9 @@ It shows the candidate immediately for project as big as Linux kernel.
 [[screenshot.png]]
 
 * Install and Setup
-Place =company-ctags.el= under [[https://www.emacswiki.org/emacs/LoadPath][Load Path]], then add =(require 'company-ctags)= to your configuration.
+You could place =company-ctags.el= under [[https://www.emacswiki.org/emacs/LoadPath][Load Path]], then add =(require 'company-ctags)= to your configuration.
 
-It’s also possible to use [[http://melpa.org/]].
+But I recommend to use [[http://melpa.org/]] to install the package.
 
 Setup is simple,
 #+BEGIN_SRC emacs-lisp
@@ -17,6 +17,8 @@ Setup is simple,
   (company-ctags-auto-setup))
 #+END_SRC
 * Usage
+Step 0, Make sure [[http://company-mode.github.io/][company-mode is already set up]].
+
 Step 1, create tags file in project root,
 #+begin_src sh
 find . -name "*.[ch]" | ctags -e -L -
@@ -75,6 +77,6 @@ Add below code into ~/.emacs,
 * Contact me
 Report bugs at [[https://github.com/redguardtoo/company-ctags]].
 * License
-This program is free software: you can redistribute it and/or modify it under the terms of the [[https://raw.githubusercontent.com/technomancy/find-file-in-project/master/LICENSE][GNU General Public License]] as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+This program is free software: you can redistribute it and/or modify it under the terms of the [[file:LICENSE][GNU General Public License]] as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [[https://raw.githubusercontent.com/technomancy/find-file-in-project/master/LICENSE][GNU General Public License]] for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the [[file:LICENSE][GNU General Public License]] for more details.
