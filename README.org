@@ -1,8 +1,9 @@
 * Fastest auto-completion using Company and Ctags
+[[https://travis-ci.org/redguardtoo/company-ctags][https://travis-ci.org/redguardtoo/company-ctags.svg?branch=master]]
 
-This library enables the completion using [[http://company-mode.github.io][Company mode]] and [[https://en.wikipedia.org/wiki/Ctags][Ctags]] for Emacs. It's *simply fast* because a new optimized algorithm is designed for Ctags.
+This program enables the completion using [[http://company-mode.github.io][Company mode]] and [[https://en.wikipedia.org/wiki/Ctags][Ctags]] for Emacs. It's *fast* because a new algorithm is used.
 
-It shows the candidate immediately for project as big as Linux kernel.
+It shows the candidate immediately for huge project like Linux kernel.
 
 [[screenshot.png]]
 
