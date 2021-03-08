@@ -1,6 +1,6 @@
 ;;; company-ctags.el --- Fastest company-mode completion backend for ctags  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019,2020 Chen Bin
+;; Copyright (C) 2019-2021 Chen Bin
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/redguardtoo/company-ctags
@@ -107,6 +107,18 @@ not exist, it is replaced (silently) with an empty string."
   "Be quiet and do not notify user tags file status."
   :type 'boolean)
 
+(defcustom company-ctags-sqlite-program "sqlite"
+  "The sqlite program."
+  :type 'string)
+
+(defcustom company-ctags-sqlite-database-file nil
+  "The file of sqlite database."
+  :type 'string)
+
+(defcustom company-ctags-use-sqlite-as-buffer-p nil
+  "If this flag is t, use sqlite database as buffer."
+  :type 'boolean)
+
 (defcustom company-ctags-support-etags nil
   "Support tags file created by etags.
 If t, it increases the loading time."
@@ -197,11 +209,26 @@ the candidate."
       (setq i (1+ i)))
     rlt))
 
-(defmacro company-ctags-push-tagname (tagname tagname-dict)
+(defun company-ctags-run-sqlite (command)
+  "Run sqlite COMMAND."
+  (let* ((db (or company-ctags-sqlite-database-file
+                 (concat (file-name-as-directory user-emacs-directory)
+                         ".company-ctags.sqlite")))
+         (cmd (format "%s \"%s\" \"%s\""
+                      company-ctags-sqlite-program
+                      db
+                      command)))
+    (shell-command cmd)))
+
+(defun company-ctags-push-tagname (tagname tagname-dict)
   "Push TAGNAME into TAGNAME-DICT."
-  `(let ((c (elt ,tagname 0)))
-     (when (company-ctags-tag-name-character-p c)
-       (push ,tagname (gethash c ,tagname-dict)))))
+  (cond
+   (company-ctags-use-sqlite-as-buffer-p
+    (company-ctags-run-sqlite "INSERT INTO tags (tag_name) VALUES ('hello3')"))
+   (t
+    (let ((c (elt tagname 0)))
+      (when (company-ctags-tag-name-character-p c)
+        (push tagname (gethash c tagname-dict)))))))
 
 (defun company-ctags-n-items (n tagnames)
   "Return first N items of TAGNAMES."
@@ -248,9 +275,12 @@ the candidate."
 (defun company-ctags-parse-tags (text &optional dict)
   "Extract tag names from TEXT.
 DICT is the existing lookup dictionary contains tag names.
-If it's nil, return a dictionary, or else return the existing dictionary."
+If it's nil, return a dictionary, or else return the existing dictionary.
+When `company-ctags-use-sqlite-as-buffer-p' is t, it's database table name."
   (let* ((start 0))
-    (unless dict (setq dict (company-ctags-init-tagname-dict)))
+    (when (and (not dict)
+               (not company-ctags-use-sqlite-as-buffer-p))
+      (setq dict (company-ctags-init-tagname-dict)))
 
     ;; Code inside the loop should be optimized.
     ;; Please avoid calling lisp function inside the loop.
@@ -381,6 +411,8 @@ If QUIET is t, don not output any message."
                ;; by `diff-command', so don't need store original raw content
                ;; of tags file in order to save memory.
                (list :raw-content (unless static-p raw-content)
+                     ;; tagname-dict could be the table name of sqlite database
+                     ;; if `company-ctags-use-sqlite-as-buffer-p' is true
                      :tagname-dict tagname-dict
                      :static-p static-p
                      :timestamp (float-time (current-time))
