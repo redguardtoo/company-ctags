@@ -4,7 +4,7 @@
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/redguardtoo/company-ctags
-;; Version: 0.0.4
+;; Version: 0.0.5
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "25.1") (company "0.9.0"))
 
@@ -189,13 +189,18 @@ the candidate."
           (setq company-ctags-buffer-table (company-ctags-find-table))
         company-ctags-buffer-table)))
 
-(defun company-ctags-tag-name-character-p (c)
-  "Test if character C is in `company-ctags-tag-name-valid-characters'."
-  (let (rlt (i 0) (len (length company-ctags-tag-name-valid-characters)))
+(defun company-ctags-char-in-string-p (character string)
+  "Test if CHARACTER is in STRING."
+  (let (rlt (i 0) (len (length string)))
     (while (and (not rlt) (< i len))
-      (setq rlt (eq (elt company-ctags-tag-name-valid-characters i) c))
+      (setq rlt (eq (elt string i) character))
       (setq i (1+ i)))
     rlt))
+
+(defun company-ctags-tag-name-character-p (character)
+  "Test if CHARACTER is in `company-ctags-tag-name-valid-characters'."
+  (company-ctags-char-in-string-p character
+                                  company-ctags-tag-name-valid-characters))
 
 (defmacro company-ctags-push-tagname (tagname tagname-dict)
   "Push TAGNAME into TAGNAME-DICT."
@@ -291,6 +296,22 @@ If `company-ctags-fuzzy-match-p' is t, check if the match contains STRING."
    (t
     (all-completions string collection))))
 
+(defun company-ctags-fetch-by-first-char (c prefix tagname-dict)
+  "Fetch candidates by first character C of PREFIX from TAGNAME-DICT."
+  (let* ((rlt (company-ctags-all-completions prefix (gethash c tagname-dict))))
+    (when company-ctags-ignore-case
+      (let (c2 (offset (- ?a ?A)))
+        (cond
+         ((company-ctags-char-in-string-p c "abcdefghijklmnopqrstuvwxyz")
+          (setq c2 (- c offset)))
+
+         ((company-ctags-char-in-string-p c "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+          (setq c2 (+ c offset))))
+
+        (when c2
+          (setq rlt (nconc rlt (company-ctags-all-completions prefix (gethash c2 tagname-dict)))))))
+    rlt))
+
 (defun company-ctags-all-candidates (prefix tagname-dict)
   "Search for partial match to PREFIX in TAGNAME-DICT."
   (cond
@@ -301,13 +322,10 @@ If `company-ctags-fuzzy-match-p' is t, check if the match contains STRING."
       ;; search all hash tables
       ;; don't care the first character of prefix
       (dolist (c keys)
-        (setq arr (gethash c tagname-dict))
-        (setq rlt (nconc rlt (company-ctags-all-completions prefix arr))))
+        (setq rlt (nconc rlt (company-ctags-fetch-by-first-char c prefix tagname-dict))))
       rlt))
    (t
-    (let* ((c (elt prefix 0))
-           (arr (gethash c tagname-dict)))
-      (company-ctags-all-completions prefix arr)))))
+    (company-ctags-fetch-by-first-char (elt prefix 0) prefix tagname-dict))))
 
 (defun company-ctags-load-tags-file (file static-p &optional force no-diff-prog quiet)
   "Load tags from FILE.
