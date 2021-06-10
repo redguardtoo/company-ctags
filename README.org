@@ -34,6 +34,8 @@ You can set =company-ctags-extra-tags-files= to load extra tags files,
 (setq company-ctags-extra-tags-files '("$HOME/TAGS" "/usr/include/TAGS"))
 #+end_src
 
+** Ignore case
+Set =company-ctags-ignore-case= to ignore case when fetching candidates.
 ** Use CLI program diff to improve performance
 Make sure CLI program =diff= is executable on Windows.
 

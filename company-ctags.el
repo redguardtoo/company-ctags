@@ -57,6 +57,8 @@
 ;;   The input could match any part of the candidate instead of the beginning of
 ;;   the candidate.
 ;;
+;; - Set `company-ctags-ignore-case' to ignore case when fetching candidates
+;;
 ;; - Use rusty-tags to generate tags file for Rust programming language.
 ;;   Add below code into ~/.emacs,
 ;;     (setq company-ctags-tags-file-name "rusty-tags.emacs")
