@@ -1,5 +1,7 @@
 * Fastest auto-completion using Company and Ctags
-[[https://travis-ci.org/redguardtoo/company-ctags][https://travis-ci.org/redguardtoo/company-ctags.svg?branch=master]]
+[[https://github.com/redguardtoo/company-ctags/actions/workflows/test.yml][https://github.com/redguardtoo/company-ctags/actions/workflows/test.yml/badge.svg]]
+[[http://melpa.org/#/company-ctags][file:http://melpa.org/packages/company-ctags-badge.svg]]
+[[http://stable.melpa.org/#/company-ctags][file:http://stable.melpa.org/packages/company-ctags-badge.svg]]
 
 This program enables the completion using [[http://company-mode.github.io][Company mode]] and [[https://en.wikipedia.org/wiki/Ctags][Ctags]] for Emacs. It's *fast* because a new algorithm is used.
 
