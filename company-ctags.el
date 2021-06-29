@@ -4,7 +4,7 @@
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/redguardtoo/company-ctags
-;; Version: 0.0.5
+;; Version: 0.0.6
 ;; Keywords: convenience
 ;; Package-Requires: ((emacs "25.1") (company "0.9.0"))
 
@@ -319,7 +319,6 @@ If `company-ctags-fuzzy-match-p' is t, check if the match contains STRING."
   (cond
    (company-ctags-fuzzy-match-p
     (let* ((keys (hash-table-keys tagname-dict))
-           arr
            rlt)
       ;; search all hash tables
       ;; don't care the first character of prefix
@@ -371,19 +370,18 @@ If QUIET is t, don not output any message."
         (setq raw-content (plist-get file-info :raw-content))
 
         ;; use diff to find the new tags
-        (let* ((tmp-file (make-temp-file "company-ctags-diff"))
-               (cmd (format "%s -ab %s %s" diff-command tmp-file file)))
-          ;; create old tags file
+        (let (diff-output)
           (with-temp-buffer
             (insert (plist-get file-info :raw-content))
-            (write-region (point-min) (point-max) tmp-file nil :silent))
+            ;; when process finished, replace temp buffer with program output
+            (call-process-region (point-min) (point-max) diff-command t t nil "-ab" file "-")
+            (setq diff-output (buffer-string)))
+
           ;; compare old and new tags file, extract tag names from diff output which
           ;; should be merged with old tag names
           (setq tagname-dict
-                (company-ctags-parse-tags (shell-command-to-string cmd)
-                                          (plist-get file-info :tagname-dict)))
-          ;; clean up
-          (delete-file tmp-file)))
+                (company-ctags-parse-tags diff-output
+                                          (plist-get file-info :tagname-dict)))))
        (t
         (setq raw-content (with-temp-buffer
                             (insert-file-contents file)
