@@ -49,7 +49,7 @@
          dict)
     (should (file-exists-p tags-file-name))
     (setq company-ctags-tags-file-caches nil)
-    (should (company-ctags-load-tags-file tags-file-name nil t t t))
+    (should (company-ctags-load-tags-file tags-file-name nil t t))
     (setq file-info (gethash tags-file-name company-ctags-tags-file-caches))
     (should file-info)
     ;; check the file meta data
@@ -65,7 +65,7 @@
          dict
          cands)
     (setq company-ctags-tags-file-caches nil)
-    (should (company-ctags-load-tags-file tags-file-name nil t t t))
+    (should (company-ctags-load-tags-file tags-file-name nil t t))
     (should company-ctags-tags-file-caches)
 
     (setq file-info (gethash tags-file-name company-ctags-tags-file-caches))
