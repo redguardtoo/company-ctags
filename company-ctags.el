@@ -158,7 +158,7 @@ the candidate."
 
 (defvar company-backends) ; avoid compiling warning
 
-(defvar-local company-ctags-buffer-table 'unknown)
+(defvar-local company-ctags-buffer-table-internal nil)
 
 (defvar company-ctags-tags-file-caches nil
   "The cached tags files.")
@@ -187,9 +187,9 @@ the candidate."
 (defun company-ctags-buffer-table ()
   "Find buffer table."
   (or (and company-ctags-use-main-table-list tags-table-list)
-      (if (eq company-ctags-buffer-table 'unknown)
-          (setq company-ctags-buffer-table (company-ctags-find-table))
-        company-ctags-buffer-table)))
+      (or company-ctags-buffer-table-internal
+          (setq company-ctags-buffer-table-internal
+                (company-ctags-find-table)))))
 
 (defun company-ctags-char-in-string-p (character string)
   "Test if CHARACTER is in STRING."
