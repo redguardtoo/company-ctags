@@ -1,12 +1,12 @@
 ;;; company-ctags.el --- Fastest company-mode completion backend for ctags  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019,2020 Chen Bin
+;; Copyright (C) 2019-2024 Chen Bin
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/redguardtoo/company-ctags
 ;; Version: 0.0.7
 ;; Keywords: convenience
-;; Package-Requires: ((emacs "25.1") (company "0.9.0"))
+;; Package-Requires: ((emacs "27.1") (company "0.9.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -128,8 +128,8 @@ Set it to t or to a list of major modes."
 Default value is 30 seconds."
   :type 'integer)
 
-(defcustom company-ctags-tags-file-name "TAGS"
-  "The name of tags file."
+(defcustom company-ctags-tags-file-name '("tags" "TAGS")
+  "The name or name list of tags file."
   :type 'string)
 
 (defcustom company-ctags-tag-name-valid-characters
@@ -176,12 +176,18 @@ the candidate."
 
 (defun company-ctags-find-table ()
   "Find tags file."
-  (let* ((file (expand-file-name
-                company-ctags-tags-file-name
-                (locate-dominating-file (or buffer-file-name
-                                            default-directory)
-                                        company-ctags-tags-file-name))))
-    (when (and file (file-regular-p file))
+  (let* ((file-name company-ctags-tags-file-name)
+         (file-names (if (stringp file-name) (list file-name) file-name))
+         file)
+    (when (cl-find-if (lambda (fn)
+                        (message "fn=%s" fn)
+                        (setq file (expand-file-name
+                                    fn
+                                    (locate-dominating-file (or buffer-file-name
+                                                                default-directory)
+                                                            fn)))
+                        (and file (file-regular-p file)))
+                      file-names)
       (list file))))
 
 (defun company-ctags-buffer-table ()
