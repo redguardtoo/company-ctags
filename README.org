@@ -22,9 +22,9 @@ Setup is simple,
 * Usage
 Step 0, Make sure [[http://company-mode.github.io/][company-mode is already set up]].
 
-Step 1, create tags file in project root,
+Step 1, create tags file in project root (Please note "-e" in cli is optional because both Emacs and Vim tags file are supported since v0.1.0),
 #+begin_src sh
-find . -name "*.[ch]" | ctags -e -L -
+ctags -e -R .
 #+end_src
 
 Step 2, enjoy!

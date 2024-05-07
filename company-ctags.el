@@ -1,12 +1,12 @@
 ;;; company-ctags.el --- Fastest company-mode completion backend for ctags  -*- lexical-binding: t -*-
 
-;; Copyright (C) 2019,2020 Chen Bin
+;; Copyright (C) 2019-2024 Chen Bin
 
 ;; Author: Chen Bin <chenbin.sh@gmail.com>
 ;; URL: https://github.com/redguardtoo/company-ctags
-;; Version: 0.0.7
+;; Version: 0.1.0
 ;; Keywords: convenience
-;; Package-Requires: ((emacs "25.1") (company "0.9.0"))
+;; Package-Requires: ((emacs "27.1") (company "0.9.0"))
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -90,8 +90,7 @@ buffer automatically."
 
 (defcustom company-ctags-ignore-case nil
   "Non-nil to ignore case in completion candidates."
-  :type 'boolean
-  :package-version '(company . "0.7.3"))
+  :type 'boolean)
 
 (defcustom company-ctags-extra-tags-files nil
   "List of extra tags files which are loaded only once.
@@ -120,16 +119,15 @@ Set it to t or to a list of major modes."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "Any supported mode" t)
                  (repeat :tag "Some major modes"
-                         (symbol :tag "Major mode")))
-  :package-version '(company . "0.9.0"))
+                         (symbol :tag "Major mode"))))
 
 (defcustom company-ctags-check-tags-file-interval 30
   "The interval (seconds) to check tags file.
 Default value is 30 seconds."
   :type 'integer)
 
-(defcustom company-ctags-tags-file-name "TAGS"
-  "The name of tags file."
+(defcustom company-ctags-tags-file-name '("tags" "TAGS")
+  "The name or name list of tags file."
   :type 'string)
 
 (defcustom company-ctags-tag-name-valid-characters
@@ -163,25 +161,25 @@ the candidate."
 (defvar company-ctags-tags-file-caches nil
   "The cached tags files.")
 
+(defvar company-ctags-debug nil
+  "Enable debug logging")
+
 (defvar company-ctags-cached-candidates nil
   "The cached candidates searched with certain prefix.")
 
-(defconst company-ctags-fast-pattern
-  "\177\\([^\177\001\n]+\\)\001"
-  "Pattern to extract tag name created by Ctags only.")
-
-(defconst company-ctags-slow-pattern
-  "\\([^\f\t\n\r()=,; ]*\\)[\f\t\n\r()=,; ]*\177\\\(?:\\([^\n\001]+\\)\001\\)?"
-  "Pattern to extract tag name created by Ctags/Etags.")
-
 (defun company-ctags-find-table ()
   "Find tags file."
-  (let* ((file (expand-file-name
-                company-ctags-tags-file-name
-                (locate-dominating-file (or buffer-file-name
-                                            default-directory)
-                                        company-ctags-tags-file-name))))
-    (when (and file (file-regular-p file))
+  (let* ((file-name company-ctags-tags-file-name)
+         (file-names (if (stringp file-name) (list file-name) file-name))
+         file)
+    (when (cl-find-if (lambda (fn)
+                        (setq file (expand-file-name
+                                    fn
+                                    (locate-dominating-file (or buffer-file-name
+                                                                default-directory)
+                                                            fn)))
+                        (and file (file-regular-p file)))
+                      file-names)
       (list file))))
 
 (defun company-ctags-buffer-table ()
@@ -252,20 +250,27 @@ the candidate."
       (setq i (1+ i)))
     dict))
 
-(defun company-ctags-parse-tags (text &optional dict)
-  "Extract tag names from TEXT.
+(defun company-ctags-parse-tags (text emacs-tags-file-p &optional dict)
+  "Extract tag names from TEXT of tags file.
+If EMACS-TAGS-FILE-P is t, the tags file in Emacs format.  Or else Vim format.
 DICT is the existing lookup dictionary contains tag names.
 If it's nil, return a dictionary, or else return the existing dictionary."
   (let* ((start 0)
+         (emacs-regex "\177\\([^\177\001\n]+\\)\001")
+         (etags-regex "\\([^\f\t\n\r()=,; ]*\\)[\f\t\n\r()=,; ]*\177\\\(?:\\([^\n\001]+\\)\001\\)?")
+         (vim-regex "^\\([^!\f\t\n\r()=,; ]+\\)\t\\(.+\\)$")
          (case-fold-search company-ctags-ignore-case))
+
+    (when company-ctags-debug (message "company-ctags-parse-tags called"))
     (unless dict (setq dict (company-ctags-init-tagname-dict)))
 
     ;; Code inside the loop should be optimized.
     ;; Please avoid calling lisp function inside the loop.
     (cond
-     (company-ctags-support-etags
+     ;; tags file is in emacs format with support on some legacy stuff
+     ((and company-ctags-support-etags emacs-tags-file-p)
       ;; slow algorithm, need support both explicit and implicit tags name
-      (while (string-match company-ctags-slow-pattern text start)
+      (while (string-match etags-regex text start)
         (cond
          ((match-beginning 2)
           ;; There is an explicit tag name.
@@ -277,12 +282,21 @@ If it's nil, return a dictionary, or else return the existing dictionary."
           (company-ctags-push-tagname (substring text (match-beginning 1) (match-end 1))
                                       dict)))
         (setq start (+ 4 (match-end 0)))))
-     (t
+
+     ;; tags file is in emacs format
+     (emacs-tags-file-p
       ;; fast algorithm, support explicit tags name only
-      (while (string-match company-ctags-fast-pattern text start)
+      (while (string-match emacs-regex text start)
         (company-ctags-push-tagname (substring text (match-beginning 1) (match-end 1))
                                     dict)
-        (setq start (+ 4 (match-end 0))))))
+        (setq start (+ 4 (match-end 0)))))
+
+     ;; tags file is in vim format
+     (t
+      (while (string-match vim-regex text start)
+        (company-ctags-push-tagname (substring text (match-beginning 1) (match-end 1))
+                                    dict)
+        (setq start (match-end 2)))))
 
     dict))
 
@@ -330,8 +344,13 @@ If `company-ctags-fuzzy-match-p' is t, check if the match contains STRING."
    (t
     (company-ctags-fetch-by-first-char (elt prefix 0) prefix tagname-dict))))
 
+(defun company-ctags-check-tags-file-format (content)
+  "Check tags file's format by analyzing CONTENT."
+  ;; Emacs tags file has character "Form Feed"
+  (string-match-p "\014" content))
+
 (defun company-ctags-load-tags-file (file static-p &optional force no-diff-prog)
-  "Load tags from FILE.
+  "Load tags from FILE.  Tags file generated by Emacs and Vim is supported.
 If STATIC-P is t, the corresponding tags file is read only once.
 If FORCE is t, tags file is read without `company-ctags-tags-file-caches'.
 If NO-DIFF-PROG is t, do NOT use diff on tags file.
@@ -343,6 +362,7 @@ This function return t if any tag file is reloaded."
                         file-info
                         (plist-get file-info :raw-content)
                         (executable-find diff-command)))
+         emacs-tags-file-p
          tagname-dict
          reloaded)
 
@@ -381,15 +401,20 @@ This function return t if any tag file is reloaded."
           ;; should be merged with old tag names
           (setq tagname-dict
                 (company-ctags-parse-tags diff-output
+                                          (plist-get file-info :emacs-tags-file-p)
                                           (plist-get file-info :tagname-dict)))))
        (t
         (unless company-ctags-quiet (message "Please be patient when loading %s" file))
         (setq raw-content (with-temp-buffer
                             (insert-file-contents file)
                             (buffer-string)))
+        (setq emacs-tags-file-p (company-ctags-check-tags-file-format raw-content))
         ;; collect all tag names
-        (setq tagname-dict (company-ctags-parse-tags raw-content))
-        (unless company-ctags-quiet (message "%s is loaded." file))))
+        (setq tagname-dict (company-ctags-parse-tags raw-content emacs-tags-file-p))
+        (unless company-ctags-quiet
+          (message "%s with %s format is loaded."
+                   file
+                   (if emacs-tags-file-p "Emacs" "Vim")))))
 
       ;; initialize hash table if needed
       (unless company-ctags-tags-file-caches
@@ -403,6 +428,7 @@ This function return t if any tag file is reloaded."
                (list :raw-content (unless static-p raw-content)
                      :tagname-dict tagname-dict
                      :static-p static-p
+                     :emacs-tags-file-p emacs-tags-file-p
                      :timestamp (float-time (current-time))
                      :filesize (nth 7 (file-attributes file)))
                company-ctags-tags-file-caches))
@@ -422,6 +448,9 @@ This function return t if any tag file is reloaded."
 
 (defun company-ctags--candidates (prefix)
   "Get candidate with PREFIX."
+  (when company-ctags-debug
+    (message "company-ctags--candidates called => %s" prefix))
+
   (when (and prefix (> (length prefix) 0))
     (let* ((file (and tags-file-name (file-truename tags-file-name)))
            (completion-ignore-case company-ctags-ignore-case)

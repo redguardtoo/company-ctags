@@ -22,48 +22,46 @@
 
 ;;; Commentary:
 
+;;; Code:
+
 (require 'ert)
 (require 'cl-lib)
 (require 'company-ctags nil t)
 
-(defvar tags-file-content '("\014\nhello.js,124\n"
-                            "function hello() {\177hello\0011,0\n"
-                            "function HELLO() {\177hello\0011,0\n"
-                            "export class CHello {\177CHello\0013,21\n"
-                            " hello() {\177hello\0014,43\n"
-                            " test() {\177test\0016,59\n"
-                            "  hi() {\177hi\0018,74\n"
-                            "\014\ntest.js,29\n"
-                            "function hello() {\177hello\0011,0\n"))
-
 (defun get-full-path (filename)
+  "Get full path of FILENAME."
   (concat
    (if load-file-name (file-name-directory load-file-name) default-directory)
    filename))
 
-(ert-deftest company-ctags-test-load-tags-file ()
-  ;; one hello function in test.js
-  ;; one hello function, one hello method and one test method in hello.js
+(defun company-ctags-test-load-tags-file-internal (file-name)
+  "Run test by FILE-NAME of tags file."
   (let* (cands
-         (tags-file-name (get-full-path "TAGS"))
+         (tags-file-name (get-full-path file-name))
          file-info
          (file-size (nth 7 (file-attributes tags-file-name)))
          dict)
     (should (file-exists-p tags-file-name))
     (setq company-ctags-tags-file-caches nil)
     (should (company-ctags-load-tags-file tags-file-name nil t t))
-    ;; (setq file-info (gethash tags-file-name company-ctags-tags-file-caches))
-    ;; (should file-info)
-    ;; ;; check the file meta data
-    ;; (should (eq (plist-get file-info :filesize) file-size))
-    ;; (should (eq (length (plist-get file-info :raw-content)) file-size))
-    ;; (setq dict (plist-get file-info :tagname-dict))
-    ;; (should dict)
-    ))
+    (setq file-info (gethash tags-file-name company-ctags-tags-file-caches))
+    (should file-info)
+    ;; check the file meta data
+    (should (eq (plist-get file-info :filesize) file-size))
+    (should (eq (length (plist-get file-info :raw-content)) file-size))
+    (setq dict (plist-get file-info :tagname-dict))
+    (should dict)))
 
-(ert-deftest company-ctags-test-completion ()
+(ert-deftest company-ctags-test-load-tags-file ()
+  ;; one hello function in test.js
+  ;; one hello function, one hello method and one test method in hello.js
+  (company-ctags-test-load-tags-file-internal "TAGS")
+  (company-ctags-test-load-tags-file-internal "tags"))
+
+(defun company-ctags-test-completion-internal (file-name)
+  "Run test by FILE-NAME of tags file."
   (let* (cands
-         (tags-file-name (get-full-path "TAGS"))
+         (tags-file-name (get-full-path file-name))
          file-info
          dict
          cands)
@@ -84,9 +82,14 @@
     (setq cands (company-ctags-all-candidates "h" dict))
     (should (eq (length cands) 5))))
 
-(ert-deftest company-ctags-test-case-sensitive-and-partial-match ()
+(ert-deftest company-ctags-test-completion ()
+  (company-ctags-test-completion-internal "TAGS")
+  (company-ctags-test-completion-internal "tags"))
+
+(defun company-ctags-test-case-sensitive-and-partial-match-internal (file-name)
+  "Run test by FILE-NAME of tags file."
   (let* (cands
-         (tags-file-name (get-full-path "TAGS"))
+         (tags-file-name (get-full-path file-name))
          file-info
          dict
          cands)
@@ -116,4 +119,9 @@
     ;; "hello" should NOT be the candidate
     (should (not (cl-find-if (lambda (e) (string= e "hello")) cands)))))
 
+(ert-deftest company-ctags-test-case-sensitive-and-partial-match ()
+  (company-ctags-test-case-sensitive-and-partial-match-internal "TAGS")
+  (company-ctags-test-case-sensitive-and-partial-match-internal "tags"))
+
 (ert-run-tests-batch-and-exit)
+;;; company-ctags-tests.el ends here
